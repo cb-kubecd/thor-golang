@@ -1,0 +1,32 @@
+apiVersion: skaffold/v1alpha2
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.DOCKER_REGISTRY}}/cb-kubecd/thor-golang:{{.VERSION}}"
+  artifacts:
+  - imageName: changeme
+    workspace: .
+    docker: {}
+  local: {}
+deploy:
+  kubectl:
+    manifests:
+profiles:
+- name: dev
+  build:
+    tagPolicy:
+      envTemplate:
+        template: "{{.DOCKER_REGISTRY}}/cb-kubecd/thor-golang:{{.DIGEST_HEX}}"
+    artifacts:
+    - docker: {}
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: thor-golang
+        chartPath: charts/thor-golang
+        setValueTemplates:
+          image.repository: "{{.DOCKER_REGISTRY}}/cb-kubecd/thor-golang"
+          image.tag: "{{.DIGEST_HEX}}"
+        
